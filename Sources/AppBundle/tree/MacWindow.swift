@@ -240,7 +240,26 @@ private func unbindAndGetBindingDataForNewWindow(_ windowId: OpaqueWindowId, _ m
 @MainActor
 private func unbindAndGetBindingDataForNewTilingWindow(_ workspace: Workspace, window: Window?) -> BindingData {
     window?.unbindFromParent() // It's important to unbind to get correct data from below
-    if let (tilingParent, index) = workspace.mostRecentWindowRecursive?.nearestAliveTilingParent() {
+    if let mruWindow = workspace.mostRecentWindowRecursive,
+       let (tilingParent, index) = mruWindow.nearestAliveTilingParent()
+    {
+        if config.enableDwindleAutotiling {
+            // Wrap the most recently used window in a new split container.
+            // Choose the split axis from the window's current virtual frame:
+            // split along its longer dimension to keep the resulting tiles balanced.
+            let rect = mruWindow.lastAppliedLayoutVirtualRect
+            let orientation: Orientation = (rect.map { $0.width >= $0.height } ?? true) ? .h : .v
+            let mruData = mruWindow.unbindFromParent()
+            let newContainer = TilingContainer(
+                parent: tilingParent,
+                adaptiveWeight: mruData.adaptiveWeight,
+                orientation,
+                .tiles,
+                index: mruData.index,
+            )
+            mruWindow.bind(to: newContainer, adaptiveWeight: WEIGHT_AUTO, index: 0)
+            return BindingData(parent: newContainer, adaptiveWeight: WEIGHT_AUTO, index: 1)
+        }
         return BindingData(parent: tilingParent, adaptiveWeight: WEIGHT_AUTO, index: index + 1)
     } else {
         return BindingData(
