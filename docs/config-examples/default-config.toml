@@ -20,6 +20,9 @@ auto-reload-config = false
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
 enable-normalization-flatten-containers = true
 enable-normalization-opposite-orientation-for-nested-containers = true
+# Automatically split the most recently focused tile in a Dwindle pattern.
+# Disabled by default; when enabled, nested split axes follow each tile's longer side.
+enable-dwindle-autotiling = false
 
 # See: https://nikitabobko.github.io/AeroSpace/guide#layouts
 # The 'accordion-padding' specifies the size of accordion padding
