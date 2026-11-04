@@ -579,6 +579,20 @@ struct ConfigTest {
         )
     }
 
+    @Test func testParseDwindleAutotiling() {
+        let disabledByDefault = parseConfig("")
+        assertEquals(disabledByDefault.errors, [])
+        assertEquals(disabledByDefault.config.enableDwindleAutotiling, false)
+
+        let enabled = parseConfig(
+            """
+            enable-dwindle-autotiling = true
+            """,
+        )
+        assertEquals(enabled.errors, [])
+        assertEquals(enabled.config.enableDwindleAutotiling, true)
+    }
+
     @Test func testParseDefaultRootContainerLayout() {
         let result = parseConfig(
             """
