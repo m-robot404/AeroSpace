@@ -218,11 +218,10 @@ final class MacWindow: Window {
 extension Window {
     @MainActor
     func relayoutWindow(on workspace: Workspace, _ cm: CancellationMode, forceTile: Bool = false) async throws {
-        let data: BindingData
-        if forceTile {
-            data = try await unbindAndGetBindingDataForNewTilingWindow(workspace, window: self, cm)
+        let data: BindingData = if forceTile {
+            try await unbindAndGetBindingDataForNewTilingWindow(workspace, window: self, cm)
         } else {
-            data = try await unbindAndGetBindingDataForNewWindow(self.asMacWindow().windowId, self.asMacWindow().macApp, workspace, window: self, cm)
+            try await unbindAndGetBindingDataForNewWindow(self.asMacWindow().windowId, self.asMacWindow().macApp, workspace, window: self, cm)
         }
         bind(to: data.parent, adaptiveWeight: data.adaptiveWeight, index: data.index)
     }
