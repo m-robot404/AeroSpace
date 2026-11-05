@@ -51,6 +51,7 @@ final class StatusBarManager {
                 defer: false
             )
             newPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
+            newPanel.level = .popUpMenu
             newPanel.isOpaque = false
             newPanel.backgroundColor = .clear
             newPanel.hasShadow = false
