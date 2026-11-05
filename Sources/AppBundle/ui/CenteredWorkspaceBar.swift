@@ -125,7 +125,7 @@ struct CenteredBarWorkspaceItem {
 }
 
 struct CenteredBarWindowItem {
-    let windowId: UInt32
+    let windowId: OpaqueWindowId
     let appName: String?
     let icon: NSImage?
     let isFocused: Bool
