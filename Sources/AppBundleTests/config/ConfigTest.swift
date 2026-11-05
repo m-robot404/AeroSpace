@@ -768,7 +768,6 @@ struct ConfigTest {
         assertEquals(result.errors, [])
         assertEquals(result.config.modes[mainModeId]?.bindings.count, 12)
     }
-
 }
 
 extension ParseConfigResult {
