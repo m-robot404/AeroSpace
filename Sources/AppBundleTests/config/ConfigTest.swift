@@ -23,6 +23,17 @@ struct ConfigTest {
         assertTrue(result.strWarnings.first?.starts(with: "[WARNING] The current 'config-version = 1' is outdated.") == true)
     }
 
+    @Test func testParseDwindleAutotilingConfig() {
+        let result = parseConfig(
+            """
+            config-version = 2
+            enable-dwindle-autotiling = true
+            """,
+        )
+        assertEquals(result.errors, [])
+        assertEquals(result.config.enableDwindleAutotiling, true)
+    }
+
     @Test func testParseDefaultConfig() {
         let toml = try! String(contentsOf: projectRoot.appending(component: "docs/config-examples/default-config.toml"), encoding: .utf8)
         let result = parseConfig(toml)
