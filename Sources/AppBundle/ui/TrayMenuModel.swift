@@ -69,6 +69,9 @@ enum AxPermissionStatus: Equatable {
         items.insert(mode, at: 0)
     }
     TrayMenuModel.shared.trayItems = items
+    if TrayMenuModel.shared.experimentalUISettings.centeredBarEnabled {
+        StatusBarManager.shared.updateCenteredBar(viewModel: TrayMenuModel.shared)
+    }
 }
 
 struct WorkspaceViewModel: Hashable {

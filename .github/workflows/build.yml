@@ -51,7 +51,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-15, macos-26, xcode-27]
+        # One universal release build is sufficient; debug builds cover the full OS matrix.
+        os: [macos-26]
     name: build-release
     runs-on: ${{ matrix.os }}
     steps:
@@ -69,6 +70,15 @@ jobs:
           ./build-release.sh --codesign-identity -
           brew trust nikitabobko/tap
           ./install-from-sources.sh --dont-rebuild
+      - name: Upload universal macOS build
+        if: matrix.os == 'macos-26'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AeroSpace-macOS-universal
+          path: .release/AeroSpace-v*.zip
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
       - name: cat ./.release/xcodebuild.log
         if: ${{ always() }}
         run: 'if test -f ./.release/xcodebuild.log; then cat ./.release/xcodebuild.log; fi'
