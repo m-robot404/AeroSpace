@@ -47,7 +47,7 @@ extension TilingContainer {
         if orientation == targetOrientation {
             return
         }
-        if config.enableNormalizationOppositeOrientationForNestedContainers {
+        if config.enableNormalizationOppositeOrientationForNestedContainers && !config.enableDwindleAutotiling {
             parentsWithSelf
                 .filterIsInstance(of: TilingContainer.self)
                 .forEach { $0._orientation.flip() }

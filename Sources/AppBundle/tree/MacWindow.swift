@@ -218,9 +218,11 @@ final class MacWindow: Window {
 extension Window {
     @MainActor
     func relayoutWindow(on workspace: Workspace, _ cm: CancellationMode, forceTile: Bool = false) async throws {
-        let data = forceTile
-            ? unbindAndGetBindingDataForNewTilingWindow(workspace, window: self)
-            : try await unbindAndGetBindingDataForNewWindow(self.asMacWindow().windowId, self.asMacWindow().macApp, workspace, window: self, cm)
+        let data: BindingData = if forceTile {
+            try await unbindAndGetBindingDataForNewTilingWindow(workspace, window: self, cm)
+        } else {
+            try await unbindAndGetBindingDataForNewWindow(self.asMacWindow().windowId, self.asMacWindow().macApp, workspace, window: self, cm)
+        }
         bind(to: data.parent, adaptiveWeight: data.adaptiveWeight, index: data.index)
     }
 }
@@ -232,15 +234,36 @@ private func unbindAndGetBindingDataForNewWindow(_ windowId: OpaqueWindowId, _ m
     return switch try await macApp.getAxUiElementWindowType(windowId, windowLevel, cm) {
         case .popup: BindingData(parent: macosPopupWindowsContainer, adaptiveWeight: WEIGHT_AUTO, index: INDEX_BIND_LAST)
         case .dialog: BindingData(parent: workspace.floatingWindowsContainer, adaptiveWeight: WEIGHT_AUTO, index: INDEX_BIND_LAST)
-        case .window: unbindAndGetBindingDataForNewTilingWindow(workspace, window: window)
+        case .window: try await unbindAndGetBindingDataForNewTilingWindow(workspace, window: window, cm)
     }
 }
 
 // The function is private because it's unsafe. It leaves the window in unbound state
 @MainActor
-private func unbindAndGetBindingDataForNewTilingWindow(_ workspace: Workspace, window: Window?) -> BindingData {
+private func unbindAndGetBindingDataForNewTilingWindow(_ workspace: Workspace, window: Window?, _ cm: CancellationMode) async throws -> BindingData {
     window?.unbindFromParent() // It's important to unbind to get correct data from below
-    if let (tilingParent, index) = workspace.mostRecentWindowRecursive?.nearestAliveTilingParent() {
+    let mruWindow = workspace.mostRecentWindowRecursive
+    if config.enableDwindleAutotiling, let mruWindow, let tilingParent = mruWindow.parent as? TilingContainer {
+        // Dwindle autotiling: split the most-recently-used window along its longer side.
+        // Use the current AX frame because this AeroSpace revision no longer stores the
+        // older lastAppliedLayoutVirtualRect property used by the reference fork.
+        let rect = try await mruWindow.getAxRect(cm)
+        let orientation: Orientation = (rect.map { $0.width >= $0.height } ?? true) ? .h : .v
+        let mruData = mruWindow.unbindFromParent()
+        let newContainer = TilingContainer(
+            parent: tilingParent,
+            adaptiveWeight: mruData.adaptiveWeight,
+            orientation,
+            .tiles,
+            index: mruData.index,
+        )
+        mruWindow.bind(to: newContainer, adaptiveWeight: WEIGHT_AUTO, index: 0)
+        return BindingData(
+            parent: newContainer,
+            adaptiveWeight: WEIGHT_AUTO,
+            index: 1,
+        )
+    } else if let (tilingParent, index) = mruWindow?.nearestAliveTilingParent() {
         return BindingData(parent: tilingParent, adaptiveWeight: WEIGHT_AUTO, index: index + 1)
     } else {
         return BindingData(
