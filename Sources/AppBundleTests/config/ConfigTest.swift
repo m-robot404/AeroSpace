@@ -746,6 +746,29 @@ struct ConfigTest {
         assertEquals(colemakResult.config.keyMapping, KeyMapping(preset: .colemak, rawKeyNotationToKeyCode: [:]))
         assertEquals(colemakResult.config.keyMapping.resolve()["f"], .e)
     }
+    @Test func testArrowKeyBindingsAndVimBindingsCanCoexist() {
+        let result = parseConfig(
+            """
+            config-version = 2
+            [mode.main.binding]
+                alt-h = 'focus left'
+                alt-j = 'focus down'
+                alt-k = 'focus up'
+                alt-l = 'focus right'
+                alt-left = 'focus left'
+                alt-down = 'focus down'
+                alt-up = 'focus up'
+                alt-right = 'focus right'
+                alt-shift-left = 'move left'
+                alt-shift-down = 'move down'
+                alt-shift-up = 'move up'
+                alt-shift-right = 'move right'
+            """,
+        )
+        assertEquals(result.errors, [])
+        assertEquals(result.config.modes[mainModeId]?.bindings.count, 12)
+    }
+
 }
 
 extension ParseConfigResult {
