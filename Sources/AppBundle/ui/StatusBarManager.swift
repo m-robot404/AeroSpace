@@ -16,7 +16,9 @@ final class StatusBarManager {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in self?.updateCenteredBar(viewModel: .shared) }
+            Task.startUnstructured { @MainActor in
+                self?.updateCenteredBar(viewModel: .shared)
+            }
         }
     }
 
