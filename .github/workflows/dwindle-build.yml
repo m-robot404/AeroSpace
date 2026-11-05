@@ -1,0 +1,56 @@
+name: Dwindle and Arrow Keys Build
+
+on:
+  push:
+    branches:
+      - feature/dwindle-full-arrow-keys
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build, test, and package (Apple Silicon)
+    runs-on: macos-26
+    timeout-minutes: 90
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Select Xcode
+        run: ./.github/gh-actions-runner-xcode-select.sh
+
+      - name: Install build dependencies
+        run: |
+          brew install bash fish xcbeautify swiftly
+          HOMEBREW_DISABLE_LOAD_FORMULA=1 brew update
+
+      - name: Install Swift toolchain
+        run: |
+          swiftly init --skip-install --assume-yes --verbose
+          swiftly install
+          swiftly run swift --version
+
+      - name: Build debug
+        run: ./build-debug.sh
+
+      - name: Run test suite
+        run: ./test.sh
+
+      - name: Build release package
+        run: ./build-release.sh --codesign-identity -
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AeroSpace-Dwindle-ArrowKeys-arm64
+          path: |
+            .release/AeroSpace-v0.0.0-SNAPSHOT.zip
+            .release/AeroSpace.app
+            .release/aerospace
+          if-no-files-found: error
+          retention-days: 14
