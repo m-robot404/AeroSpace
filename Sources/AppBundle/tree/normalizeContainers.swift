@@ -3,7 +3,7 @@ extension Workspace {
         let root = rootTilingContainer
         root.unbindEmptyAndFlattenContainersRecursive()
         // rootTilingContainer.deriveAxLifeStatusRecursive()
-        if config.enableNormalizationOppositeOrientationForNestedContainers {
+        if config.enableNormalizationOppositeOrientationForNestedContainers && !config.enableDwindleAutotiling {
             root.normalizeOppositeOrientationForNestedContainersRecursive(parentOrientation: nil)
         }
     }
