@@ -37,6 +37,10 @@ import Foundation
             smartLayoutAtStartup()
             _ = await config.afterStartupCommand.run(.defaultEnv, .emptyStdin)
         }
+
+        if TrayMenuModel.shared.experimentalUISettings.centeredBarEnabled {
+            StatusBarManager.shared.setupCenteredBar(viewModel: TrayMenuModel.shared)
+        }
     }
 }
 
