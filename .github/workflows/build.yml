@@ -69,6 +69,14 @@ jobs:
           ./build-release.sh --codesign-identity -
           brew trust nikitabobko/tap
           ./install-from-sources.sh --dont-rebuild
+      - name: Upload universal macOS build
+        if: matrix.os == 'macos-26'
+        uses: actions/upload-artifact@v4
+        with:
+          name: AeroSpace-macOS-universal
+          path: .release/AeroSpace-v*.zip
+          if-no-files-found: error
+          retention-days: 30
       - name: cat ./.release/xcodebuild.log
         if: ${{ always() }}
         run: 'if test -f ./.release/xcodebuild.log; then cat ./.release/xcodebuild.log; fi'
